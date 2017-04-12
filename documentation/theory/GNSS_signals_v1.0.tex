@@ -1,0 +1,180 @@
+\documentclass[openany,10pt,twoside,a4paper]{book} 
+
+\usepackage{pdfpages}		% Include pdf
+\usepackage{fancyhdr}		% headers
+\usepackage{amsmath}
+\usepackage[headings]{fullpage}
+\usepackage{breqn}
+\usepackage[electronic]{ifsym}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xr}		% reference to another file with\externaldocument
+% Tables 
+\usepackage{bigdelim, bigstrut}	
+\usepackage{multirow} 
+
+
+\begin{document}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[CE,CO]{\thepage}
+
+
+\noindent  Copyright 2017 Daniel Pascual \newline
+\noindent Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included in the section entitled "GNU Free Documentation License".  \newline  \newline
+
+\noindent Author: Daniel Pascual (daniel.pascual at protonmail.com)  \newline
+\noindent Date: 6 March 2017 
+
+
+\chapter{GNSS signals}
+The Global Navigation Satellite Systems (GNSS) data signals contains the ephemeris information of each satellite, which is then used by a receiver to obtain its position. The new signals also contain Forward Error Correction (FEC) techniques to mitigate the impact of the channel. These signals are transmitted using Binary Phase Shift Keying (BPSK) modulations with a very narrow spectrum (in the order of a few tens of Hz). The spectrum of these signals is then spread to a much larger bandwidth ($\approx 10^6$ times more) with the Direct-sequence spread spectrum (DSSS) technique, but maintaining the transmitted power with the so-called ranging codes. Some of these signals and codes are only available for civilians, while others are conceived for military purposes. The receiver generates a clean replica of the transmitted code and despreads the signal back to its original shape. The reasons of this frequency expansion are several. First, the location accuracy is better as wider the spectrum is; second, it reduces the multipath impact in harsh environments; and third, it mitigates the effect of Radio Frequency Interference (RFI) signals. 
+
+In order to allow all the satellites to share the same bands, each satellite use a different ranging code (sometimes a time multiplex or an addition of more), technique known as Code Division Multiple Access (CDMA). The receiver finds the satellites in view by cross-correlating the received signal with all the possible codes, only those which are present, will be matched. The codes are called pseudo random noise (PRN) sequences because they are designed to mimic a pure random signal, so as to have good auto-correlation and cross-correlation properties with the other codes of the same system. The codes are cyclically repeated (in the order of few milliseconds) to allow the receiver to acquire and track the signals rapidly. Since the spread signals are affected by the bit phase change of the original data signals, some services are transmitted along with a dataless pilot signal which allows the receiver to perform a longer coherent search of the satellites.
+
+The modulation of the spread signal depends on how the ranging codes are applied to the data signal. In the past, these modulations were also also BPSK, and are used for the GPS L1 C/A, L1 P, L2C, L2 P, L5, BeiDou-2 B1, B1-2, B2, and B3. However, the new signals use improved modulations called Binary Offset Carrier (BOC) \cite{Betz2001}, which add square sub-carriers to the original ranging codes. This results in a frequency shift of the main spectrum lobe from the carrier frequency, and in a multi-peak auto-correlation functions (ACF). The BOC modulations were originally conceived to reduce interference with the BPSK signals emitted at the same band, but also to increase the positioning accuracy \cite{AvilaPHD}. However, they require a more complicated acquisition and tracking scheme. The general expression for a BOC modulation is usually written as BOC(n,m) which refers to a code chipping rate of $f_r = m\cdot1.023$ MHz and a sub-carrier frequency of $f_b = n\cdot1.023$ MHz. Depending on the phase of the subcarrier, the modulation can be sine-phased (BOC\textsubscript{s}) or cosine-phased (BOC\textsubscript{c}). The expressions of the sub-carrier functions are
+
+\begin{equation} 
+\begin{aligned}
+x_{BOCs,f_b} &= sign\left( sin \left( 2\pi f_b t \right) \right), \\
+x_{BOCc,f_b} &= sign\left( cos \left( 2\pi f_b t \right) \right),
+\end{aligned}
+\end{equation}
+where $sign\left(t \right)$ is the sign function which extracts the sign of another function. The GPS M signals use a BOC\textsubscript{s}(10,5), the future versions of the BeiDou-2 B1 and B3A will use a BOC\textsubscript{s}(14,2) and BOC\textsubscript{s}(15,2.5) respectively, and the Galileo E6A uses a BOC\textsubscript{c}(10,5). 
+
+Some signals combine several BOC into a more complex modulations, such as the modified alternative BOC or AltBOC and the multiplexed BOC or MBOC(6,1,1/11). The modified AltBOC differs from a BOC by using two complex sub-carriers instead of a single real. Under \textit{modified} it is understood that the sub-carriers are not square pulses but chosen to obtain a constant envelope. An AltBOC can also be processed as two independently QPSK signals with shifted carrier frequencies. The MBOC(6,1,1/11) modulation can be obtained by different ways. One is the composite BOC or CBOC(6,1,1/11) which is the addition of a BOC\textsubscript{s}(1,1) with a BOC\textsubscript{s}(6,1), with a power distribution of 10/11 and 1/11 respectively. The second method is called time multiplexed BOC or TMBOC(6,1,4/33), which is the addition of a BOC\textsubscript{s}(1,1) with a time multiplex of another BOC\textsubscript{s}(1,1) with a BOC\textsubscript{s}(6,1) with a time distribution of 29/33\% and 4/33\% respectively. The power distribution between the continuous BOC\textsubscript{s}(1,1) and the multiplexed signal is 3/4 and 1/4 respectively. The Galileo E5 signal uses an AltBOC, the GPS L1C implements the TMBOC(6,1,4/33), the Galileo E1 adopted CBOC(6,1,1/11), and the future BeiDou-2 B1 will also use a MBOC(6,1,1/11).
+
+This documents explains the generation of the the GPS L1 C/A \cite{GPSL1}, L5 \cite{GPSL5} and the Galileo E1OS and E5 \cite{Galileo}. The codes are written as $c_{\text{x}}\left(t\right)$, and the data signals with $d_{\text{x}}\left(t\right)$. The code generation are explained in next chapter. \newline
+
+\noindent
+\textbf{GPS L1 C/A and L5} \\
+The GPS L1 C/A is the simplest one, and contains just one ranging code and one data signal. The GPS L5 contains two ranging codes and one data signal. Their complex baseband expressions are
+\begin{dgroup*}
+\begin{dmath}
+x_{L1CA}\left(t \right) = c_{L1CA}\left(t\right)d_{L1CA}\left(t\right)
+\end{dmath}
+\begin{dmath}
+x_{L5}\left(t \right) = c_{L5I}\left(t\right)d_{L5}\left(t\right)+jc_{L5Q}\left(t\right).
+\end{dmath}
+\end{dgroup*} 
+
+\noindent
+\textbf{Galileo E1OS} \\
+The Galileo E1OS signal is generated with 2 ranging codes and one data signal
+\begin{dmath}
+x_{E1}\left(t\right) = 
+{\frac{1}{\sqrt{2}}  e_{E1B}\left(t\right) \left( \sqrt{10/11} x_{BOCs,f_{b}^{6}}\left( t \right) \right)+   \left( \sqrt{1/11} x_{BOCs,f_{b}^{1}}\left(t\right) \right) } -
+{\frac{1}{\sqrt{2}}  e_{E1C}\left(t\right) \left( \sqrt{10/11} x_{BOCs,f_{b}^{6}}\left( t \right) \right)-   \left( \sqrt{1/11} x_{BOCs,f_{b}^{1}}\left( t \right) \right) }
+\end{dmath}
+with $f_{b}^{1}=1.023$ MHz and $f_{b}^{6}=6.138$ MHz, and with
+\begin{equation} 
+\begin{aligned}
+e_{E1B}\left(t\right) &=  c_{E1B}\left(t\right)d_{E1}\left(t\right),\\ 
+e_{E1C}\left(t\right) &=  c_{E1C}\left(t\right).
+\end{aligned}
+\end{equation}
+
+\noindent
+\textbf{Galileo E5} \\
+The Galileo E5 signal is constructed with 4 ranging codes and 2 data signals
+\begin{dmath}
+x_{E5}\left(t\right) = 
+{\frac{1}{2\sqrt{2}} \left( e_{E5aI}\left(t\right) + je_{E5aQ}\left(t\right)  \right) \left(  b_{1}\left(t\right) - b_{1}\left(t - t_{b}^{E5}/4\right)   \right)} +
+{\frac{1}{2\sqrt{2}} \left( e_{E5bI}\left(t\right) + je_{E5bQ}\left(t\right)  \right) \left(  b_{1}\left(t\right) + b_{1}\left(t - t_{b}^{E5}/4\right)   \right)} + 
+{\frac{1}{2\sqrt{2}} \left( \bar{e}_{E5aI}\left(t\right) + j\bar{e}_{E5aQ}\left(t\right)  \right) \left(  b_{2}\left(t\right) - b_{2}\left(t - t_{b}^{E5}/4\right)   \right)}+
+{\frac{1}{2\sqrt{2}} \left( \bar{e}_{E5bI}\left(t\right) + j\bar{e}_{E5bQ}\left(t\right)  \right) \left(  b_{2}\left(t\right) - b_{2}\left(t - t_{b}^{E5}/4\right)   \right)},
+\label{eq:signal_AltBOC}
+\end{dmath}
+where $t_{b}^{E5}=1/15.345$ MHz is the period of the sub-carrier frequencies, and with
+\begin{equation} 
+\begin{aligned}[c]
+e_{E5aI}\left(t\right) &=  c_{E5aI}\left(t\right)d_{E5aI}\left(t\right),\\ 
+e_{E5aQ}\left(t\right) &=  c_{E5aQ}\left(t\right),\\
+e_{E5bI}\left(t\right) &=  c_{E5bI}\left(t\right)d_{E5bI}\left(t\right),\\
+e_{E5bQ}\left(t\right) &=  c_{E5bQ}\left(t\right),
+\end{aligned}
+\qquad \qquad
+\begin{aligned}[c]
+\bar{e}_{E5aI}\left(t\right) &= e_{E5aQ}\left(t\right)e_{E5bI}\left(t\right)e_{E5bQ}\left(t\right),\\
+\bar{e}_{E5aQ}\left(t\right) &= e_{E5aI}\left(t\right)e_{E5bI}\left(t\right)e_{E5bQ}\left(t\right),\\
+\bar{e}_{E5bI}\left(t\right) &= e_{E5bQ}\left(t\right)e_{E5aI}\left(t\right)e_{E5aQ}\left(t\right),\\
+\bar{e}_{E5bQ}\left(t\right) &= e_{E5bI}\left(t\right)e_{E5aI}\left(t\right)e_{E5aQ}\left(t\right),
+\end{aligned}
+\end{equation}
+and where $b_{1}\left(t\right)$ and $b_{2}\left(t\right)$ are the sub-carrier functions
+\begin{equation} 
+\begin{aligned}
+b_{1}\left(t\right) &=   \sum_{i} \alpha \textifsym{\PulseHigh}\left(t - it_{b}^{E5}/8 \right), \\
+b_{2}\left(t\right) &=   \sum_{i} \beta \textifsym{\PulseHigh}\left(t - it_{b}^{E5}/8 \right),
+\end{aligned}
+\end{equation}
+where $\textifsym{\PulseHigh} \left(t\right)$ is a unitary pulse for $0<t<t_{b}^{E5}$, and the coefficients $\alpha$ and $\beta$ are given in Table \ref{tab:coeff_altboc}.
+\begin{table}[tb]
+\centering
+  \caption{Galileo E5 AltBOC sub-carrier coefficients.}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+ \hline 
+ \textbf{i} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} & \textbf{6} & \textbf{7} \\ 
+ \hline 
+ $2\alpha$ & $\sqrt(2)+1$ & $1$ & $-1$ & $-\sqrt(2)-1$ & $-\sqrt(2)-1$ & $-1$ & $1$ & $\sqrt(2)+1$ \\ 
+ \hline 
+ $2\beta$ & $-\sqrt(2)+1$ & $1$ & $-1$ & $\sqrt(2)-1$ & $\sqrt(2)-1$ & $-1$ & $1$ & $-\sqrt(2)+1$ \\ 
+ \hline 
+\end{tabular}  
+\label{tab:coeff_altboc}%
+\end{table}
+
+\chapter{GNSS codes}
+Most of the GNSS codes are generated with linear feedback shift registers (LFSR), but some of the modern ones are given as random memory codes which cannot be created with any LFSR. A LFSR produces a cycling sequence of a given length. The repetition period depends on the \textit{taps} used to update the new value of the first register. For a LFSR of $n$ registers, there is an optimum tap combination that generates a sequence of length $2^n-1$. This sequence is called maximum length sequence (MLS) or \textit{m}-sequence, and there is no other sequence of the same length. The initial value of the registers is called \textit{seed}. Two LFSR with the same tap positions and different seeds, will generate the same sequences but one delayed with respect to the other. The speed at which the LFSR \textit{shifts}, is given by a driven clock frequency.   
+
+Since the m-sequence is unique, the GNSS codes are actually a complex combination of several codes, sometimes even a time multiplex between them. These basic codes can be memory codes or the combination of several LFSR. The LFSR are designed by means of the driven clock frequency, seeds, taps, and \textit{phases}, which are the registers used to generate the output. In some cases, is also desirable to reset the LFSR to its original state before its natural end. The codes that are explained in this document are $c_{L1CA}$, $c_{L5I}$, $c_{L5Q}$, $c_{E1B}$, $c_{E1C}$, and $c_{E5x}$. Their construction are given in Figs. \ref{fig:code_CA}, \ref{fig:code_L5} and \ref{fig:code_E5}, and are explained next.\newline
+
+\noindent
+\textbf{GPS L1 C/A} \\
+The GPS L1 C/A codes are formed with two LFSR of 10 registers driven with a clock frequency of 1.023 MHz. The tap positions of both registers are fixed, and their seeds are all one for all the PRN. The code is created by adding the last register of the first LFSR with two registers of the second LFSR. The two phases are different for each PRN. This results in a code of length 1023 chips and 1 ms. These codes generated with these LFSR combination are called Gold codes after the name of their inventor. \newline
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/code_L1CA.png}
+\caption{L1 C/A code generation}
+\label{fig:code_CA}
+\end{figure}
+
+\noindent
+\textbf{GPS L5} \\
+The GPS L5I and GPS L5Q codes are the addition of two codes. The principal codes are formed with 2 LFSR of 13 registers driven with a clock frequency of 10.23 MHz. One LFSR  is shared between both components, has fixed taps, and its seed is all ones for all the PRN. The register is reset before its natural end. The other two LFSR have also fixed taps, but their seeds are different for each satellite. The code is created from the last registers of the LFSR. This results in a code of length 10230 chips and 1 ms. The secondary codes are memory codes named Neufarm Huffman codes, and are driven with a clock frequency of 1 kHz. The codes have a different length for both components: 10 chips and 10 ms for the I, and 20 chips and 20 ms for the Q, and are the same for all the PRN. \newline
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/code_L5.png}
+\caption{E5I/E5Q code generation}
+\label{fig:code_L5}
+\end{figure}
+
+\noindent
+\textbf{Galileo E1B and E1C} \\
+The Galileo E1B is created with one code, whereas the and E1C is also a tiered code. The preliminary codes are random memory codes of length 4092 chips, different for each PRN, and driven with a clock frequency of 1.023 MHz, resulting in duration of 4 ms. The secondary code of the E1C is a memory code of length 25 chips, fixed for all the PRN and driven with a clock frequency of 250 Hz, resulting in a duration of 100 ms. \newline
+
+\noindent
+\textbf{Galileo E5aI, E5aQ, E5bI, E5bQ} \\
+The codes of the E5 signal components are all tiered codes constructed from two codes. The preliminary codes are created with two LFSR of 15 registers driven with a clock frequency of 10.23 MHz. The tap positions of both registers are different for each component but fixed for all the PRN. The seeds are different for each component and satellite. The code is created from the last position of both registers. These results in a code of length 10230 chips and 1 ms. The secondary codes are a memory codes driven with a clock frequency of 1 KHz. Each code has a different length: 20 chips for the E5aI, 100 chips for the E5aQ, 4 chips for the E5bI, and 100 chips for the E5bQ, resulting in a duration of 4, 20 or 100 ms. The codes of the E5aI and E5bI are fixed for all PRN, whereas for the E5aQ and E5bQ are different.
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/code_E5.png}
+\caption{E5 code generation of each component}
+\label{fig:code_E5}
+\end{figure}
+
+
+\input{GNSS_summary_table}
+
+
+\chapter{GNU Free Documentation License}
+\input{license}
+
+
+
+\bibliographystyle{ieeetr}
+\bibliography{references}	
+
+\end{document}

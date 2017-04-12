@@ -1,0 +1,22 @@
+\chapter{GNSS signals summary tale}
+\label{ch:GNSS_Table}
+This Appendix includes a summary table of the GNSS signals and their spectra plots. This information is only valid for the MEO constellations. The signals transmitted by the augmentation systems (SBAS), regional  systems (RNSS), and GEO or GSO satellites, may have different properties. The data is mainly obtained from the official ICD of the respective systems. Some information of the restricted signals has been found on other sources (references are given in the footnotes), and likely assumptions have been done on some bandwidth and power values (indicated when proceeds). All the bandwidths are referred to RF (i.e. double-sideband). The powers values depend on the reference antenna and elevation angle (see footnotes), but also depend on the satellite age. Nominal and maximum values can be up to 6 dB larger. Abbreviations are: N/A stands for Non Available, and  DNF stands for Data Not Found (which may actually be also N/A values).
+
+\footnotetext[1]{GPS Interface Control Documents. GPS L1C/A, L2C and both P signals: IS-GPS-200 \cite{GPSL1}; GPS L5: IS-GPS-705 \cite{GPSL5}; GPS L1C: IS-GPS-800 \cite{GPSL1C}.}
+\footnotetext[2]{Galileo Open Service Signal In Space Interface Control Document (OS SIS ICD) \cite{Galileo}.}
+\footnotetext[3]{BeiDou-2 Interface Control Document \cite{Beidou}. Code lengths and data rates are obtained from \cite{InsideGNSS2007}}.
+\footnotetext[4]{Obtained from \cite{Navipedia}}.
+\footnotetext[5]{These bandwidths are actually a reference receiver bandwidths for a commercial receiver. The ICD does not tell the transmitted bandwidths. Note for example that the nominal bandwidth of the modulation used by E1 PRS is 35.806 MHz, much larger than the given 24.552 MHz, which is only useful for receiving the open signals.
+The E5 signal is similar to a QPSK-R10 at Fca and Fcb with a RF bandwidth of 20.46 MHz}
+\footnotetext[6]{These values are actually the reserved bands for the BeiDou-2 system referred to a central frequency of 1575.42 MHz for the B1/B1-2, 1191.795 MHz for the B2, and 1268.52 MHz for the B3.}
+\footnotetext[7]{Bandwidth defined at -1 dB. At -3 dB is 16.368 MHz for the B1/B1-2 and 36.828 for the B2.}
+\footnotetext[8]{Assumed likely values.}
+\footnotetext[9]{The ITU bandwidths are found on \cite{AvilaPHD}.}
+\footnotetext[10]{Referred to a central frequency of 1189 MHz.}
+\footnotetext[11]{Restricted services are marked with asterisk.}
+\footnotetext[12]{Minimum received signal power level on Earth by a receiver using an ideally matched RHCP antenna with a gain of 3 dBi (GPS) and 0 dBi (Galileo). Values are valid for elevations between the ones listed in column \textit{REF. ELEV} and 90 degrees.}
+\footnotetext[13]{From \cite{Neira2011}.}
+\footnotetext[14]{From \cite{AvilaPHD}.}
+\footnotetext[15]{For the BOC-based signals, the bandwidth is defined between the outer nulls of the largest spectral lobes. This translates into that not all of them are in the same power percentile.}
+
+\includepdf[pages=-,pagecommand={\pagestyle{plain}},landscape=true]{table_GNSS.pdf}
