@@ -14,8 +14,8 @@ function code = GNSScodegen(svnum, modulation,ld)
 %       # Chip lenght --> L1CA: 1023, L5I/L5Q/E5aI/EaQ/E5bI/E5bQ: 10230,
 %       E1B/E1C: 4092, B1I: 2047, L2CM: 10230, L2CL: 767250.   
 %       # This code have been tested satisfactorily to acquire real L1C/A, 
-%       L5 and E1OS signals, but there has not been any chance yet to test 
-%       it with B1I, L2CM, L2CL and E5 signals.
+%       L2, L5 and E1OS signals, but there has not been any chance yet
+%        to test it with B1I and E5 signals.
 %
 %   References
 %       # L1CA/L2: GPS Interface Control Document IS-GPS-200

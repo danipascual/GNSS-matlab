@@ -6,14 +6,16 @@ function [I Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
 %
 %   Inputs
 %       svnum --> Satellite number. GPS: [1-32], Galileo: [1-50].
-%       signal --> L1CA, L5, E1OS, E5.
+%       signal --> L1CA, L2C, L2CM, L2CL, L5, E1OS, E5.
 %       fs --> sampling frequency.
 %       n_periods --> periods of the original signal lenght. Default is
 %       "1".
 %
 %   Observations
-%       # PRN chipping rates --> L1CA/E1OS: 1.023 MCps, L5/E5: 10.23 MCps
-%       # Period lenght --> L1CA/L5/E5: 1 ms, E1OS: 4ms.
+%       # PRN chipping rates --> L1CA/L2CM/L2CL/L2C/E1OS: 1.023 MCps, 
+%       L5/E5: 10.23 MCps
+%       # Period lenght --> L1CA/L5/E5: 1 ms, L2CM: 20ms, L2CL: 1.5s,
+%       E1OS: 4ms.
 %       # Have in mind that the tranmsitted signals by the satellites are 
 %       bandlimited. If the desired sampling frequency is higher than the 
 %       original bandwidth, the signal may be generated using the latter as
@@ -31,18 +33,19 @@ function [I Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
 %       sub-carriers have not their expected period. However these 
 %       differences are very very small, and the adquistion is believed to 
 %       not be compromised.
-%       # This code have been tested satisfactorily to acquire real L1C/A, 
-%       L5 and E1OS signals, but there has not been any chance yet to test 
-%       it with E5 signals.
+%       # This code have been tested satisfactorily to acquire real L1C/A,
+%       L2CM, L2CL, L5 and E1OS signals, but there has not been any chance
+%       yet to test it with E5 signals.
 %   
 %   References
-%       # L1CA: GPS Interface Control Document IS-GPS-200
+%       # L1CA/L2: GPS Interface Control Document IS-GPS-200
 %       # L5: GPS Interface Control Document IS-GPS-705
 %       # Galileo: Galileo Open Service Signal In Space Interface Control
 %       Document (OS SIS ICD)
 %--------------------------------------------------------------------------
 % Version log (main changes)
 %   02/03/2017 --> Log started
+%   14/06/2017 --> Added L2C
 %--------------------------------------------------------------------------
 % Author: Daniel Pascual (daniel.pascual at protonmail.com) 
 % Copyright 2017 Daniel Pascual
@@ -76,6 +79,34 @@ function [I Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             coh_time = n_periods*1e-3;
             I = sample(I, fs*coh_time, 1.023e6, fs, 0); 
             Q = zeros(size(I));
+
+        case 'L2CM'
+            L2CM = GNSScodegen(svnum, 'L2CM',1);
+ 
+            L2CM = reshape([L2CM; zeros(size(L2CM))], [1 10230*2]);
+            
+            coh_time = n_periods*20e-3;
+            Q = sample(L2CM, fs*coh_time, 1.023e6, fs, 0);
+            I = zeros(size(Q));
+ 
+        case 'L2CL'
+            L2CL = GNSScodegen(svnum, 'L2CL',1);
+ 
+            L2CL = reshape([zeros(size(L2CL)); L2CL], [1 10230*75*2]);
+            
+            coh_time = n_periods*1.5;
+            Q = sample(L2CL, fs*coh_time, 1.023e6, fs, 0);
+            I = zeros(size(Q));
+ 
+        case 'L2C'
+            L2CM = GNSScodegen(svnum, 'L2CM',1);
+            L2CL = GNSScodegen(svnum, 'L2CL',1);
+ 
+            L2C = reshape([repmat(L2CM,[1 75]); L2CL], [1 10230*75*2]);
+            
+            coh_time = n_periods*1.5;
+            Q = sample(L2C, fs*coh_time, 1.023e6, fs, 0);
+            I = zeros(size(Q));            
             
         case 'L5'
             I = GNSScodegen(svnum, 'L5I',1);
