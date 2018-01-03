@@ -18,32 +18,70 @@ New versions of this program may be found at [GitHub](https://github.com/danipas
 	BeiDou-2: B1I
 
 ##### \real_data
-* capture_01.dat: 
-    8 bits complex (8 bit I + 8 bit Q)
-	fs = 10 MSps
-	duration = 10 ms
-	band: GPS L1
-	PRN: 5 and 9
 
-* capture_02.dat: 
-    8 bits complex (8 bit I + 8 bit Q)
-	fs = 25 MSps
-	duration = 16 ms
-	band: Galileo E1
-	PRN: 12		
-
-* capture_03.dat: 
-    8 bits complex (8 bit I + 8 bit Q)
-	fs = 10 MSps
-	duration = 20 ms
-	band: GPS L5
-	PRN: 1
+Test captures are obtained with a high directity antenna. Just one..
+Other, probably would need a large incoherent averaging to see the cross-correlation output
 
 * capture_04.mat
+	I don't remember the bit depth, but most probably was 8 bits
+	The original sampling frequency as well, it was downcoverted 
     fs = 2.5 MSps
-    duration = 1 s
-    band: GPS L2
-    PRN: 26
+    duration = 1.5 s
+    band: L2 (1.2276 GHz)
+    Known present PRNs: GPS L2C 26
+    data type: Matlab complex int16 
+
+* test_2_cut.dat
+	band: L1 (1.57543 GHz)
+	Known present PRNs: GPS L1 C/A 13
+    baseband 16 bits complex (16 bit I + 16 bit Q)
+	fs = 20 MSps
+	duration = 5 ms
+	data type: signed int16
+
+* test_4_cut.dat
+	band: L5 (1.17645 GHz)
+	Known present PRNs: GPS L5 30
+    baseband 16 bits complex (16 bit I + 16 bit Q)
+	fs = 20 MSps
+	duration = 20 ms
+	data type: signed int16	
+
+* test_5_cut.dat
+	band: E5A (1.176450000 GHz)
+	Known present PRNs: Galielo E5A 30
+	baseband 16 bits complex (16 bit I + 16 bit Q)
+	fs = 20 MSps
+	duration = 5 ms
+	data type: signed int8
+
+* test_6_cut.dat
+	band: E5B (1.20714 GHz)
+	Known present PRNs: Galielo E5B 7
+	baseband 16 bits complex (16 bit I + 16 bit Q)
+	fs = 20 MSps
+	duration = 5 ms
+	data type: signed int8	
+
+* test_11_cut.dat
+	band: E5 (1.191795 GHz)
+	Known present PRNs: Galielo E5 3
+	baseband 8 bits complex (8 bit I + 8 bit Q)
+	fs = 50 MSps
+	duration = 100 ms
+	data type: signed int8		
+
+* test_14_cut.dat
+	band: E1 (1.57543 GHz)
+	Known present PRNs: Galielo E1OS 3
+    baseband 8 bits complex (8 bit I + 8 bit Q)
+	fs = 50 MSps
+	duration = 100 ms
+	data type: signed int8
+
+
+
+    
 ##### \source
 * GNSScodegen.m: Generates GNSS unsampled codes.
     GPS: L1CA, L2CM, L2CL, L5I, L5Q.

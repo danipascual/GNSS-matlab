@@ -14,8 +14,8 @@ function code = GNSScodegen(svnum, modulation,ld)
 %       # Chip lenght --> L1CA: 1023, L5I/L5Q/E5aI/EaQ/E5bI/E5bQ: 10230,
 %       E1B/E1C: 4092, B1I: 2047, L2CM: 10230, L2CL: 767250.   
 %       # This code have been tested satisfactorily to acquire real L1C/A, 
-%       L2, L5 and E1OS signals, but there has not been any chance yet
-%        to test it with B1I and E5 signals.
+%       L2CM, L2CL, L2C, L5, E1OS, E5A, E5B and E5 signals, but there has 
+%       not been any chance yet to test it with B1I.
 %
 %   References
 %       # L1CA/L2: GPS Interface Control Document IS-GPS-200
@@ -124,22 +124,22 @@ function code = codegen_L1CA(svnum)
     % load shift register
     reg = -1*ones(1,10);
     g1 = zeros(1,1023);
-    for i=1:1023,
+    for i=1:1023
         g1(i) = reg(10);
         save1 = reg(3)*reg(10);
         reg(1, 2:10) = reg(1:1:9);
         reg(1) = save1;
-    end;
+    end
 
     % ****** Generate G2code ******
     % load shift register
     reg = -1*ones(1,10);
-    for i=1:1023,
+    for i=1:1023
         g2(i) = reg(10);
         save2 = reg(2)*reg(3)*reg(6)*reg(8)*reg(9)*reg(10);
         reg(1, 2:10) = reg(1:1:9);
         reg(1) = save2;
-    end;
+    end
 
     % ****** Shift G2 code ******
     g2tmp(1, 1:g2shift)      = g2(1, 1023-g2shift+1:1023);

@@ -94,7 +94,7 @@ function fh = GNSSspectrumgen
 end
         
         
-function [SI SQ] = spectrumgen_call(signal,F)
+function [SI, SQ] = spectrumgen_call(signal,F)
 %==========================================================================
 % 
 %--------------------------------------------------------------------------
