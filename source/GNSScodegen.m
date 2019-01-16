@@ -3,7 +3,8 @@ function code = GNSScodegen(svnum, modulation,ld)
 %GNSScodegen Generates unsampled GNSS ranging code with values +/-1.
 %
 %   Inputs
-%       svnum --> PRN. GPS: [1-32], GALILEO: [1-50]. BeiDou [1-37]
+%       svnum --> PRN. GPS: [1-32], GALILEO: [1-50]. BeiDou [1-37].
+%                 Can be a vector.
 %       modulation --> GPS: L1CA, L2CM, L2CL, L5I, L5Q.
 %                      Galileo: E1B, E1C, E5aI, E5aQ, E5bI, E5bQ.
 %                      BeiDou: B1I.
@@ -27,6 +28,7 @@ function code = GNSScodegen(svnum, modulation,ld)
 %--------------------------------------------------------------------------
 % Version log (main changes)
 %   02/03/2017 --> Log started
+%   16/01/2019 --> svnum can now be a vector
 %--------------------------------------------------------------------------
 % Authors: Daniel Pascual (daniel.pascual [at] protonmail.com), 
 % Raul Onrubia (onrubia [at] tsc.upc.es), Scott Gleason and D. Akos.
@@ -59,44 +61,57 @@ function code = GNSScodegen(svnum, modulation,ld)
     switch(modulation)
         case 'L1CA'
             if ld == 0
-                code = codegen_L1CA(svnum);
+                for i=1:length(svnum)
+                    code(i,:) = codegen_L1CA(svnum(i));
+                end
             elseif ld == 1
                 codes = importdata('codes_L1CA.mat');
-                code = codes(:,svnum)';
+                code = codes(:,svnum).';
             end
         case 'L2CM'
-            if ld == 0        
-                code = codegen_L2CMCL(svnum,'CM');  
+            if ld == 0    
+                for i=1:length(svnum)                
+                    code(i,:) = codegen_L2CMCL(svnum(i),'CM');  
+                end
             elseif ld == 1
                 codes = importdata('codes_L2CM.mat');
-                code = codes(:,svnum)';                
+                code = codes(:,svnum).';                
             end        
         case 'L2CL'
-            if ld == 0        
-                code = codegen_L2CMCL(svnum,'CL');
+            if ld == 0     
+                for i=1:length(svnum)                
+                    code(i,:) = codegen_L2CMCL(svnum(i),'CL');
+                end
             elseif ld == 1
                 codes = importdata('codes_L2CL.mat');
-                code = codes(:,svnum)';                    
+                code = codes(:,svnum).';                    
             end     
         case {'L5I','L5Q'}
-            if ld == 0        
-                code = codegen_L5IQ(svnum,modulation);
+            if ld == 0  
+                for i=1:length(svnum) 
+                    code(i,:) = codegen_L5IQ(svnum(i),modulation);
+                end
             elseif ld == 1
                 codes = importdata(['codes_' modulation '.mat']);
-                code = codes(:,svnum)'; 
+                code = codes(:,svnum).'; 
             end  
         case {'E5aI','E5aQ','E5bI','E5bQ', 'E1B', 'E1C'}
             if ld == 0  
-                code = codegen_E1E5(svnum,modulation);
+                for i=1:length(svnum)  
+                    code(i,:) = codegen_E1E5(svnum(i),modulation);
+                end
             elseif ld == 1
                 codes = importdata(['codes_' modulation '.mat']);
-                code = codes(:,svnum)';                 
+                code = codes(:,svnum).';                 
             end    
         case 'B1I'
             if ld == 0
-                code = codegen_B1I(svnum);
+                for i=1:length(svnum)  
+                    code(i,:) = codegen_B1I(svnum(i));
+                end
             elseif ld == 1
                 codes = importdata('codes_B1I.mat');
+                code = codes(:,svnum).';
             end
     end
 end

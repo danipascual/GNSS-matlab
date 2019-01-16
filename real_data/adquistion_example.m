@@ -50,8 +50,9 @@
 % % N_chips = 10230*20;
 % % FREQ_DOPP = linspace(0,3e3,31);
 % 
-% incoh_samples = incoh_number*coh_samples;
 % coh_samples = Coh_time*Fs;
+% incoh_samples = incoh_number*coh_samples;
+% 
 % 
 % fid = fopen('test_4_cut.dat','rb');
 % fseek(fid,0,'bof');
@@ -162,24 +163,24 @@
 % 	data type: signed int8
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Fs = 20e6;
-N_chips = 10230;
-FREQ_DOPP = linspace(-1e3,1e3,51);
-
-Coh_time = 1e-3;
-incoh_number = 1;
-% incoh_number = 5;
-
-coh_samples = Coh_time*Fs;
-incoh_samples = incoh_number*coh_samples;
-[I, Q] = GNSSsignalgen(30,'E5A',Fs,1);
-signal_reference = (I+1j*Q)'; clear I Q
-
-fid = fopen('test_5_cut.dat','rb');
-fseek(fid,0,'bof');
-signal_bb = fread(fid, [2 incoh_samples], 'int16'); fclose(fid); 
-signal_bb = signal_bb(1,:) + 1i*signal_bb(2,:);
-signa_bb = signal_bb(5e-3*Fs:end);
+% Fs = 20e6;
+% N_chips = 10230;
+% FREQ_DOPP = linspace(-1e3,1e3,51);
+% 
+% Coh_time = 1e-3;
+% incoh_number = 1;
+% % incoh_number = 5;
+% 
+% coh_samples = Coh_time*Fs;
+% incoh_samples = incoh_number*coh_samples;
+% [I, Q] = GNSSsignalgen(30,'E5A',Fs,1);
+% signal_reference = (I+1j*Q)'; clear I Q
+% 
+% fid = fopen('test_5_cut.dat','rb');
+% fseek(fid,0,'bof');
+% signal_bb = fread(fid, [2 incoh_samples], 'int16'); fclose(fid); 
+% signal_bb = signal_bb(1,:) + 1i*signal_bb(2,:);
+% signa_bb = signal_bb(5e-3*Fs:end);
 
 
 %-------------------------- test_6_cut ------------------------------------
@@ -290,11 +291,18 @@ Coh_vector = linspace(0,Coh_time,coh_samples);
 
 for k=1:incoh_number
     for i=1:length(FREQ_DOPP)
-        aux = exp(1i*2*pi*FREQ_DOPP(i).*Coh_vector);
-        WAF_coh(:,i) = ifft(fft(signal_bb(1+(k-1)*coh_samples:k*coh_samples)).*conj(fft(signal_reference.*aux))); 
+            % Incorrect way
+%         aux = exp(1i*2*pi*FREQ_DOPP(i).*Coh_vector);
+%         WAF_coh(:,i) = ifft(fft(signal_bb(1+(k-1)*coh_samples:k*coh_samples)).*conj(fft(signal_reference.*aux))); 
+        
+        aux = exp(-1i*2*pi*FREQ_DOPP(i).*Coh_vector);
+        WAF_coh(:,i) = ifft(fft(signal_bb(1+(k-1)*coh_samples:k*coh_samples).*aux).*conj(fft(signal_reference)));         
     end
     WAF = WAF+abs(WAF_coh).^2;
 end
+
+
+
 
 
 %% Plot

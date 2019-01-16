@@ -5,14 +5,51 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
 %
 %   Inputs
 %       svnum --> Satellite number. GPS: [1-32], Galileo: [1-50].
-%       signal --> L1CA, L2C, L2CM, L2CL, L5, E1OS, E5, L5+, E1OS+, E5+
+%                 Can be a vector.
+%       signal -->  L1CA: GPS L1 C/A signal
+%                   L2C: GPS L2C signal
+%                   L2CM: GPS L2C data component
+%                   L2CL: GPS L2C pilot component
+%                   L5: GPS L5 signal without secondary codes
+%                   L5+: GPS L5 signal with secondary codes
+%                   L5I: GPS L5 signal data component without secondary
+%                   codes
+%                   L5Q: GPS L5 signal pilot component without secondary
+%                   codes
+%                   L5I+: GPS L5 signal data component with secondary
+%                   codes
+%                   L5Q+: GPS L5 signal pilot component with secondary
+%                   codes
+%                   E1OS: Galileo E1OS signal with secondary codes
+%                   E1OS+: Galileo E1OS signal without secondary codes
+%                   E1OS_complex: Galileo E1OS signal without secondary 
+%                   codes with the E1C component in the imaginary part 
+%                   (see observations below).
+%                   E1OS+_complex: Galileo E1OS signal with secondary 
+%                   codes with the E1C component in the imaginary part 
+%                   (see observations below).
+%                   E1OS_B: Galileo E1OS data component
+%                   E1OS_C: Galileo E1OS pilot component without secondary
+%                   codes
+%                   E1OS+_C: Galileo E1OS pilot component with secondary
+%                   codes
+%                   E5: Galileo E5 signal without secondary codes
+%                   E5+: Galileo E5 signal with secondary codes
+%                   E5A: Galileo E5A signal without secondary codes
+%                   E5B: Galileo E5A signal without secondary codes
+
 %       fs --> sampling frequency.
 %       n_periods --> periods of the original signal lenght. Default is
 %       "1".
 %
 %   Observations
+%       # In the ICD is said that the E1OS modulation is a real signal,
+%       but I believe is actually complex so as to create a constant
+%       power envelope (like ALL the other GNSS signals). Compare for
+%       example plot(I.^2+Q.^2) with 'E1OS' and with 'EOS_complex'.
 %       # L5+, E1OS+ --> Include the secondary codes 
-%       # PRN chipping rates --> L1CA/L2CM/L2CL/L2C/E1OS/E1OS+: 1.023 MCps, 
+%       # PRN chipping rates --> 
+%       L1CA/L2CM/L2CL/L2C/E1OS/E1OS+/E1OS_complex: 1.023 MCps
 %       L5/L5+/E5: 10.23 MCps
 %       # Period lenght --> L1CA/L5/E5: 1 ms, L2CM: 20ms, L2CL: 1.5s,
 %       E1OS: 4ms, L5+: 20ms, E1OS+: 100ms, E5+:
@@ -41,6 +78,8 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
 %   02/03/2017 --> Log started
 %   14/06/2017 --> Added L2C
 %   17/11/2017 --> Added secondary codes for L5, E1OS and E5.
+%   16/01/2019 --> svnum can now be a vector
+%                  included E1OS_complex
 %--------------------------------------------------------------------------
 % Author: Daniel Pascual (daniel.pascual at protonmail.com) 
 % Copyright 2017 Daniel Pascual
@@ -80,7 +119,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
         case 'L2CM'
             L2CM = GNSScodegen(svnum, 'L2CM',1);
  
-            L2CM = reshape([L2CM; zeros(size(L2CM))], [1 10230*2]);
+            L2CM = reshape([L2CM; zeros(size(L2CM))], [length(svnum) 10230*2]);
             
             coh_time = n_periods*20e-3;
             Q = sample(L2CM, fs*coh_time, 1.023e6, fs, 0);
@@ -89,7 +128,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
         case 'L2CL'
             L2CL = GNSScodegen(svnum, 'L2CL',1);
  
-            L2CL = reshape([zeros(size(L2CL)); L2CL], [1 10230*75*2]);
+            L2CL = reshape([zeros(size(L2CL)); L2CL], [length(svnum) 10230*75*2]);
             
             coh_time = n_periods*1.5;
             Q = sample(L2CL, fs*coh_time, 1.023e6, fs, 0);
@@ -113,6 +152,20 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             coh_time = n_periods*1e-3;
             I = sqrt(0.5)*sample(I, fs*coh_time, 10*1.023e6, fs, 0); 
             Q = sqrt(0.5)*sample(Q, fs*coh_time, 10*1.023e6, fs, 0); 
+
+        case 'L5I'
+            I = GNSScodegen(svnum, 'L5Q',1);
+            
+            coh_time = n_periods*1e-3;
+            I = sqrt(0.5)*sample(I, fs*coh_time, 10*1.023e6, fs, 0); 
+            Q = zeros(size(I));
+            
+        case 'L5Q'
+            I = GNSScodegen(svnum, 'L5I',1);
+            
+            coh_time = n_periods*1e-3;
+            I = sqrt(0.5)*sample(I, fs*coh_time, 10*1.023e6, fs, 0); 
+            Q = zeros(size(I));            
             
         case 'L5+'
             % Secondary code
@@ -138,8 +191,46 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             I = 2*(I-0.5);
             Q = 2*(Q-0.5);
             I =  sqrt(0.5)*I;
-            Q =  sqrt(0.5)*Q;       
+            Q =  sqrt(0.5)*Q;  
+            
+        case 'L5I+'
+            % Secondary code
+            nh10 = GNSSsecondarygen(svnum, 'L5I');
+            nh10 = sample(nh10, fs*10e-3, 1e3, fs, 0);             
+            
+            I = GNSScodegen(svnum, 'L5I',1);
+            
+            n_periods_prn = 10*n_periods;
+            coh_time = n_periods_prn*1e-3;
+            I = sqrt(0.5)*sample(I, fs*coh_time, 10*1.023e6, fs, 0); 
 
+            % Apply secondary codes by xoring
+            I = sign(I)+1;
+            I = xor(I,nh10);
+            I = 2*(I-0.5);
+            I =  sqrt(0.5)*I;
+
+            Q = zeros(size(I));
+            
+        case 'L5Q+'
+            % Secondary code
+            nh20 = GNSSsecondarygen(svnum, 'L5Q');
+            nh20 = sample(nh20, fs*20e-3, 1e3, fs, 0);         
+            
+            I = GNSScodegen(svnum, 'L5Q',1);
+            
+            n_periods_prn = 20*n_periods;
+            coh_time = n_periods_prn*1e-3;
+            I = sqrt(0.5)*sample(I, fs*coh_time, 10*1.023e6, fs, 0); 
+
+            % Apply secondary codes by xoring
+            I = sign(I)+1;
+            I = xor(I,nh20);
+            I = 2*(I-0.5);
+            I =  sqrt(0.5)*I;
+
+            Q = zeros(size(I));
+            
         % Galileo E1OS ----------------------------------------------------
         case 'E1OS'
             E1B = GNSScodegen(svnum,'E1B',1);
@@ -156,10 +247,31 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
                   -E1C.*(-sboc_6+sboc_1);    
               
             aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
-            E1OS = E1OS/sqrt(aux);               
+            E1OS = E1OS./sqrt(aux);               
               
             I = E1OS;
-            Q = zeros(size(I));   
+            Q = zeros(size(I)); 
+
+        case 'E1OS_complex' 
+
+            E1B = GNSScodegen(svnum,'E1B',1);
+            E1C = GNSScodegen(svnum,'E1C',1);
+            
+            coh_time = n_periods*4e-3;
+            E1B = sqrt(0.5)*sample(E1B, fs*coh_time, 1.023e6,fs,0); 
+            E1C = sqrt(0.5)*sample(E1C, fs*coh_time, 1.023e6,fs,0); 
+            
+            fh = BOCgen;
+            [sboc_1, sboc_6] = fh.BOC_E1OS(coh_time,fs);
+            
+            E1OS = E1B.*(sboc_6+sboc_1)...
+                  -1j*E1C.*(-sboc_6+sboc_1);    
+              
+            aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
+            E1OS = E1OS./sqrt(aux);               
+              
+            I = real(E1OS);
+            Q = imag(E1OS);             
             
         case 'E1OS_B'
             E1B = GNSScodegen(svnum,'E1B',1);
@@ -173,7 +285,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             E1OS = E1B.*(sboc_6+sboc_1);    
               
             aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
-            E1OS = E1OS/sqrt(aux);               
+            E1OS = E1OS./sqrt(aux);               
               
             I = E1OS;
             Q = zeros(size(I));          
@@ -190,7 +302,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             E1OS = E1C.*(-sboc_6+sboc_1);    
               
             aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
-            E1OS = E1OS/sqrt(aux);               
+            E1OS = E1OS./sqrt(aux);               
               
             I = E1OS;
             Q = zeros(size(I));                 
@@ -223,10 +335,43 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
                   -E1C.*(-sboc_6+sboc_1);    
 
             aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
-            E1OS = E1OS/sqrt(aux);             
+            E1OS = E1OS./sqrt(aux);             
             
             I = E1OS;
-            Q = zeros(size(I));      
+            Q = zeros(size(I));    
+            
+        case 'E1OS+_complex'
+            % Secondary code
+            CS25_1 = GNSSsecondarygen(svnum, 'E1C');
+            CS25_1 = sample(CS25_1, fs*100e-3, 250, fs, 0); 
+
+            % PRN
+            E1B = GNSScodegen(svnum,'E1B',1);
+            E1C = GNSScodegen(svnum,'E1C',1);
+
+            n_periods_prn = 25*n_periods;
+            coh_time = n_periods_prn*4e-3;
+            E1B = sqrt(0.5)*sample(E1B, fs*coh_time, 1.023e6,fs,0); 
+            E1C = sqrt(0.5)*sample(E1C, fs*coh_time, 1.023e6,fs,0); 
+
+            fh = BOCgen;
+            [sboc_1, sboc_6] = fh.BOC_E1OS(coh_time,fs);
+
+            % Apply secondary code by xoring E1C
+            E1C = sign(E1C)+1;
+            E1C = xor(E1C,CS25_1);
+            E1C = 2*(E1C-0.5);
+            E1C =  sqrt(0.5)*E1C;
+
+            % Modulation
+            E1OS = E1B.*(sboc_6+sboc_1)...
+                  -1j*E1C.*(-sboc_6+sboc_1);    
+
+            aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
+            E1OS = E1OS./sqrt(aux);             
+            
+            I = real(E1OS);
+            Q = imag(E1OS); 
             
         case 'E1OS+_C'
             % Secondary code
@@ -253,7 +398,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             E1OS = E1C.*(-sboc_6+sboc_1);    
 
             aux = sum(abs(E1OS).^2)/length(E1OS); % Normalize power
-            E1OS = E1OS/sqrt(aux);             
+            E1OS = E1OS./sqrt(aux);             
             
             I = E1OS;
             Q = zeros(size(I));     
@@ -281,7 +426,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
             E5aI = GNSScodegen(svnum,'E5aI',1);
             E5bI = GNSScodegen(svnum,'E5bI',1);
             E5aQ = GNSScodegen(svnum,'E5aQ',1);
-            E5bQ= GNSScodegen(svnum,'E5bQ',1);
+            E5bQ = GNSScodegen(svnum,'E5bQ',1);
             
             coh_time = n_periods*1e-3;
             code1 = sample(E5aI, fs*coh_time, 10*1.023e6, fs, 0); 
@@ -298,7 +443,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
    ((code1.*code4.*code2)+1j*(code3.*code1.*code2)).*(sp1+1j*sp2);               
 
             aux = sum(abs(E5).^2)/length(E5);   % Normalize power
-            E5 = E5/sqrt(aux);            
+            E5 = E5./sqrt(aux);            
                         
             I = imag(E5);  
             Q = real(E5);     
@@ -361,7 +506,7 @@ function [I, Q] = GNSSsignalgen(svnum, signal,fs,n_periods)
    ((code1.*code4.*code2)+1j*(code3.*code1.*code2)).*(sp1+1j*sp2);               
 
             aux = sum(abs(E5).^2)/length(E5);   % Normalize power
-            E5 = E5/sqrt(aux);            
+            E5 = E5./sqrt(aux);            
             
             I = imag(E5);  
             Q = real(E5);     
